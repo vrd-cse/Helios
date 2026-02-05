@@ -56,14 +56,14 @@ for t in range(24):
         solar_available -= charge
 
     # decide if battery can be used 
-    if (t >= 18 or t <= 8) and battery_soc > 0:
+    if (t >= 18 or t <= 8) and battery_SOC> 0:
         discharge = min(
             remaining_demand,
-            battery_soc,
+            battery_SOC,
             max_discharge_rate
         )
         battery_used[t] = discharge
-        battery_soc -= discharge
+        battery_SOC -= discharge
         remaining_demand -= discharge
     # grid supplies remaining demand
     grid_used[t] = remaining_demand
