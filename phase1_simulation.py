@@ -1,7 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
+evening_start = 18
+moring_end = 8
+
 battery_capacity = 100 #kWh
 battery_SOC = 50 #kWh
+max_charge_rate = 5 #kW
+max_discharge_rate = 5 #kW
+
+battery_soc_history = []
+battery_charged = np.zeros(24)
+battery_used = np.zeros(24)
+grid_used = np.zeros(24)
+solar_used = np.zeros(24)
+
 grid_cost = np.zeros(24)
 for t in range(24):
     if 18 <= t < 24:
@@ -28,23 +41,34 @@ print("Baseline Cost (Grid Only): ₹", round(baseline_cost, 2))
 
 for t in range(24):
     # Use solar for demand first
-    solar_used[t] = min(solar[t], demand[t])
-    remaining_demand = demand[t] - solar_used[t]
+    solar_available = solar[t]
+    remaining_demand = demand[t]
 
-    if remaining_demand > 0:
-        # Discharge battery
-        battery_used[t] = min(battery_SOC, remaining_demand)
-        battery_SOC -= battery_used[t]
-        grid_used[t] = remaining_demand - battery_used[t]
-        total_cost += grid_used[t] * grid_cost[t]
-    else:
-        # Charge battery with excess solar
-        excess_solar = solar[t] - demand[t]
-        available_space = battery_capacity - battery_SOC
-        battery_charge[t] = min(excess_solar, available_space)
-        battery_SOC += battery_charge[t]
+    solar_used[t] = min(solar_available, remaining_demand) 
+    remaining_demand -= solar_used[t]
+    solar_available -= solar_used[t]
 
-    soc[t] = battery_SOC
+    # charge battery if battery is surplus exists
+    if solar_available > 0 and battery_SOC < battery_capacity:
+        charge = min(solar_available, max_charge_rate, battery_capacity - battery_SOC)
+        battery_SOC += charge
+        battery_charged[t] = charge
+        solar_available -= charge
+
+    # decide if battery can be used 
+    if (t >= 18 or t <= 8) and battery_soc > 0:
+        discharge = min(
+            remaining_demand,
+            battery_soc,
+            max_discharge_rate
+        )
+        battery_used[t] = discharge
+        battery_soc -= discharge
+        remaining_demand -= discharge
+    # grid supplies remaining demand
+    grid_used[t] = remaining_demand
+
+    battery_soc_history.append(battery_SOC)
 
 plt.figure(figsize=(10,5))
 plt.plot(hours, solar_used, label="Solar Used")
