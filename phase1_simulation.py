@@ -9,11 +9,9 @@ battery_SOC = 50 #kWh
 max_charge_rate = 5 #kW
 max_discharge_rate = 5 #kW
 
-battery_soc_history = []
 battery_charged = np.zeros(24)
 battery_used = np.zeros(24)
 grid_used = np.zeros(24)
-solar_used = np.zeros(24)
 
 grid_cost = np.zeros(24)
 for t in range(24):
@@ -24,15 +22,9 @@ for t in range(24):
 total_cost = 0
 
 hours = np.arange(24)
-
 solar = np.maximum(0,50 * np.sin((hours - 6) * np.pi / 12))
-
 demand = 30 + 10*np.sin((hours - 8) * np.pi/12) + 10
-
 solar_used = np.zeros(24)
-battery_used = np.zeros(24)
-battery_charge = np.zeros(24)
-grid_used = np.zeros(24)
 soc = np.zeros(24)
 
 baseline_cost = np.sum(demand * grid_cost)
@@ -56,7 +48,7 @@ for t in range(24):
         solar_available -= charge
 
     # decide if battery can be used 
-    if (t >= 18 or t <= 8) and battery_SOC> 0:
+    if t >= 18  and battery_SOC> 0:
         discharge = min(
             remaining_demand,
             battery_SOC,
@@ -68,7 +60,8 @@ for t in range(24):
     # grid supplies remaining demand
     grid_used[t] = remaining_demand
 
-    battery_soc_history.append(battery_SOC)
+    soc[t] = battery_SOC
+    total_cost += grid_used[t] * grid_cost[t]
 
 plt.figure(figsize=(10,5))
 plt.plot(hours, solar_used, label="Solar Used")
@@ -82,7 +75,7 @@ plt.show()
 
 plt.figure(figsize=(10,4))
 plt.plot(hours, soc, label="Battery SoC")
-plt.bar(hours, battery_charge, alpha=0.3, label="Battery Charging")
+plt.bar(hours, battery_charged, alpha=0.3, label="Battery Charging")
 plt.xlabel("Hour")
 plt.ylabel("Energy (kWh)")
 plt.legend()
