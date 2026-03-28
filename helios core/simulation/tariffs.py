@@ -1,14 +1,19 @@
-import numpy as np
+"""
+Tariff Module
+==============
+Provides time-of-use electricity pricing.
 
-def get_tariff():
-    tariff = np.zeros(24)
-    for t in range(24):
-        if 0 <= t < 5:
-            tariff[t % 24] = 5
-        elif 5 <= t < 17:
-            tariff[t % 24] = 6
-        elif 17 <= t < 22:
-            tariff[t % 24] = 9
-        else:
-            tariff[t % 24] = 6
-    return tariff
+Note: This module is deprecated - use config.get_tariff() instead.
+Kept for backward compatibility.
+"""
+
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config import get_tariff
+
+# Re-export for backward compatibility
+__all__ = ['get_tariff']

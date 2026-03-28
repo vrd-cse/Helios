@@ -1,0 +1,126 @@
+I am building a project called **Helios**, an AI-based energy optimization system. Your task is to write a complete and production-quality `main.py` file that acts as the core controller of the system.
+
+## Objective
+
+Simulate and manage energy flow between:
+
+* Solar generation
+* Battery storage
+* Grid electricity
+
+The system should intelligently process energy data and prepare for future integration with real IoT devices.
+
+---
+
+## Functional Requirements
+
+1. **Simulated Data Generation**
+   Create realistic simulated data for:
+
+* Solar energy generation (based on time of day)
+* Battery charge/discharge (SOC logic)
+* Grid consumption
+* Energy demand
+
+Use structured logic (not just random values). For example:
+
+* Solar generation = 0 at night, peak during midday
+* Demand varies by hour (higher in morning/evening)
+
+---
+
+2. **Core Processing Logic**
+   Implement:
+
+* Energy balancing (Solar → Battery → Grid)
+* Decision logic:
+
+  * Use solar first
+  * Store excess in battery
+  * Use battery when solar is insufficient
+  * Use grid as last option
+* Track:
+
+  * Solar used
+  * Battery charged/discharged
+  * Grid used
+  * Energy exported (if any)
+
+---
+
+3. **Modular Architecture**
+   Structure code into clean functions:
+
+* `generate_energy_data()`
+* `optimize_energy_flow()`
+* `run_simulation()`
+* `main()`
+
+Each function must have:
+
+* Clear purpose
+* Input/output definitions
+
+---
+
+4. **Future-Ready Design**
+   Write code in a way that allows:
+
+* Easy replacement of simulated data with real IoT/API data
+* Plugging in ML models later
+* Integration with databases like MongoDB
+
+---
+
+5. **Code Quality Requirements**
+
+* Use clean and readable Python
+* Follow best practices
+* Add meaningful comments
+* Avoid unnecessary complexity
+* Use pandas if needed for structured data
+
+---
+
+## Output Requirements
+
+The program should:
+
+* Simulate at least 24 hours of energy data
+* Print a summary:
+
+  * Total solar used
+  * Battery usage
+  * Grid consumption
+* Return structured results (DataFrame or dict)
+
+---
+
+## Constraints
+
+* Do NOT use any frontend/UI code
+* Do NOT use real APIs
+* Do NOT overcomplicate with unnecessary classes
+* Keep it efficient and scalable
+
+---
+
+## Expected Output
+
+Provide:
+
+* A complete `main.py` file
+* Clean, modular, and executable code
+* Proper entry point:
+
+```python
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## Important
+
+Think like you are building the foundation of a real-world energy management system used in smart homes or smart grids.
+

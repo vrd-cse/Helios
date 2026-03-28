@@ -1,14 +1,39 @@
 import pandas as pd
-from config import *
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config import (
+    INITIAL_SOC, BATTERY_CAPACITY, MIN_SOC, MAX_CHARGE_RATE,
+    MAX_DISCHARGE_RATE, EFFICIENCY, CYCLE_COST_PER_KWH,
+    GRID_EXPORT_LIMIT, EXPORT_PRICE, TOTAL_HOURS, PEAK_THRESHOLD,
+    get_tariff
+)
 from simulation.profiles import generate_profiles
-from simulation.tariffs import get_tariff
 from ml.predictor import predict_next_demand
-from ml.peak_dectator import detect_peak
+from ml.peak_detector import detect_peak
 
 
-def run_simulation(model=None):
-    hours , solar, demand = generate_profiles()
+def run_simulation(model=None, verbose=False):
+    """
+    Run 60-day energy simulation with optional ML model.
+
+    Args:
+        model: Trained ML model for demand prediction (optional)
+        verbose: Whether to print progress
+
+    Returns:
+        result: DataFrame with simulation results
+        baseline_cost: Cost without optimization
+        helios_cost: Cost with Helios optimization
+    """
+    hours, solar, demand = generate_profiles()
     tariff = get_tariff()
+
+    if verbose:
+        print(f"Running {len(hours)}-hour simulation...")
 
     soc = INITIAL_SOC
     soc_history = []
@@ -27,7 +52,7 @@ def run_simulation(model=None):
     for t in range(TOTAL_HOURS):
         available_solar =solar[t]
         predicted_demand = predict_next_demand(model, demand, t)
-        peak_expected = detect_peak(predicted_demand, demand[t])
+        peak_expected = detect_peak(predicted_demand, demand[t], PEAK_THRESHOLD)
 
         # solar to demand
         solar_to_demand = min(available_solar, demand[t])
@@ -40,14 +65,14 @@ def run_simulation(model=None):
         # charge battery from surplus solar
         battery_charge = 0
         if solar_surplus > 0 and soc < BATTERY_CAPACITY:
-            available_capacity = (BATTERY_CAPACITY - soc)/EFFICIENTY
+            available_capacity = (BATTERY_CAPACITY - soc)/EFFICIENCY
             charge_possible = min(solar_surplus, MAX_CHARGE_RATE, available_capacity)
             battery_charge = charge_possible
-            soc += battery_charge * EFFICIENTY
+            soc += battery_charge * EFFICIENCY
             solar_surplus -= battery_charge
 
         # export remaining solar
-        export = min(solar_surplus, MAX_EXPORT)
+        export = min(solar_surplus, GRID_EXPORT_LIMIT)
 
         # ---------------- Discharge Logic ----------------
 
@@ -57,19 +82,19 @@ def run_simulation(model=None):
         if remaining_demand > 0 and soc > MIN_SOC :
             if peak_expected:
                 discharge = min(
-                            remaining_demand / EFFICIENTY,
-                            MAX_DISCHARGE_RATE,
-                            soc - MIN_SOC
-                        )
+                    remaining_demand / EFFICIENCY,
+                    MAX_DISCHARGE_RATE,
+                    soc - MIN_SOC
+                )
             else:
-            # mild discharge during normal hours
+                # mild discharge during normal hours
                 discharge = min(
-                    remaining_demand / EFFICIENTY,
+                    remaining_demand / EFFICIENCY,
                     MAX_DISCHARGE_RATE * 0.5,
                     soc - MIN_SOC
                 )
 
-            battery_to_load = discharge * EFFICIENTY
+            battery_to_load = discharge * EFFICIENCY
             soc -= discharge
             remaining_demand -= battery_to_load
             total_battery_cycle_cost += discharge * CYCLE_COST_PER_KWH

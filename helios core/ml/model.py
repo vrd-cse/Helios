@@ -1,12 +1,16 @@
 import joblib
 import os
+import sys
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from ml.data import prepare_ml_data
 import pandas as pd
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "helios_model.pkl")
-os.makedirs("ml", exist_ok=True)
 
 
 
